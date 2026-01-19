@@ -91,6 +91,7 @@ export function PathTreeSidebar({
   const rootSelectedCount = rootUrls.filter((u) => selectedUrls.has(u.loc)).length;
   const rootIsSelected = rootSelectedCount === rootUrls.length && rootUrls.length > 0;
   const rootIsPartial = rootSelectedCount > 0 && rootSelectedCount < rootUrls.length;
+  const rootIsLimited = tree.totalUrlCount > tree.limitedUrlCount;
 
   return (
     <div className="h-full flex flex-col border-r bg-gray-50/50 dark:bg-gray-900/50">
@@ -134,14 +135,14 @@ export function PathTreeSidebar({
               </button>
               <FileText className="h-4 w-4 text-muted-foreground ml-1" />
               <span className="flex-1 truncate">/</span>
-              {tree.isLimited && (
+              {rootIsLimited && (
                 <Badge variant="outline" className="text-xs h-5 text-orange-600">
-                  {rootUrls.length}/{tree.totalUrlCount}
+                  {tree.limitedUrlCount}/{tree.totalUrlCount}
                 </Badge>
               )}
-              {!tree.isLimited && (
+              {!rootIsLimited && (
                 <Badge variant="secondary" className="text-xs h-5">
-                  {rootUrls.length}
+                  {tree.totalUrlCount}
                 </Badge>
               )}
             </div>
