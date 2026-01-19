@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,9 +48,10 @@ export default function Home() {
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [masterTab, setMasterTab] = useState<MetaTabType>('basic');
+  const [masterTab, setMasterTab] = useState<MetaTabType>('preview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [maxPathsPerParent, setMaxPathsPerParent] = useState(20);
+  const [maxPathsPerParent, setMaxPathsPerParent] = useState(3);
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Build tree from URLs (with limiting applied)
   // This rebuilds whenever urls or maxPathsPerParent changes, reprocessing all URLs
@@ -106,6 +108,8 @@ export default function Home() {
   const handleParseSitemap = async () => {
     if (!sitemapUrl.trim()) return;
 
+    // Trigger the animation
+    setHasSearched(true);
     setIsLoadingSitemap(true);
     setError(null);
     setUrls([]);
@@ -221,18 +225,156 @@ export default function Home() {
   const successCount = metaResults.filter((r) => r.status === 'success').length;
   const errorCount = metaResults.filter((r) => r.status === 'error').length;
 
+  // Animation variants
+  const containerVariants = {
+    centered: {
+      transition: { staggerChildren: 0.1 }
+    },
+    header: {
+      transition: { staggerChildren: 0.05 }
+    }
+  };
+
+  const titleVariants = {
+    centered: {
+      scale: 1.5,
+      opacity: 1,
+    },
+    header: {
+      scale: 1,
+      opacity: 1,
+    }
+  };
+
+  const searchBarVariants = {
+    centered: {
+      width: '100%',
+      opacity: 1,
+    },
+    header: {
+      width: '100%',
+      opacity: 1,
+    }
+  };
+
+  // Centered initial state - before search
+  if (!hasSearched) {
+    return (
+      <div className="h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="flex-1 flex items-center justify-center">
+          <motion.div
+            className="flex flex-col items-center gap-8 px-4 w-full max-w-2xl"
+            initial="centered"
+            animate="centered"
+            variants={containerVariants}
+          >
+            {/* Centered Title */}
+            <motion.h1
+              layoutId="title-text"
+              className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"
+              variants={titleVariants}
+            >
+              Meta Tags Utility
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              className="text-muted-foreground text-center text-lg"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              Check how your pages appear when shared. Paste your sitemap URL below.
+            </motion.p>
+
+            {/* Centered Search Bar */}
+            <motion.div
+              layoutId="search-container"
+              className="w-full"
+              variants={searchBarVariants}
+            >
+              <div className="flex gap-3">
+                <Input
+                  type="url"
+                  placeholder="https://example.com/sitemap.xml"
+                  value={sitemapUrl}
+                  onChange={(e) => setSitemapUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleParseSitemap()}
+                  disabled={isLoadingSitemap}
+                  className="flex-1 h-12 text-lg px-4"
+                />
+                <Button
+                  onClick={handleParseSitemap}
+                  disabled={!sitemapUrl.trim() || isLoadingSitemap}
+                  className="h-12 px-6"
+                  size="lg"
+                >
+                  {isLoadingSitemap ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Search className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Hint text */}
+            <motion.p
+              className="text-sm text-muted-foreground/60"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              Works with any sitemap URL
+            </motion.p>
+          </motion.div>
+        </div>
+
+        {/* Error Alert - show on centered view too */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto"
+            >
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  // Header state - after search
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* Header */}
-      <header className="border-b bg-white dark:bg-gray-950 px-4 py-3">
+      <motion.header
+        className="border-b bg-white dark:bg-gray-950 px-4 py-3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="flex items-center justify-between max-w-full">
-          <div className="flex items-center gap-2">
-            <Globe className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Meta Tags Utility</h1>
-          </div>
+          <motion.h1
+            layoutId="title-text"
+            className="text-xl font-bold"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            Meta Tags Utility
+          </motion.h1>
 
           {/* Sitemap Input */}
-          <div className="flex-1 max-w-2xl mx-4">
+          <motion.div
+            layoutId="search-container"
+            className="flex-1 max-w-2xl mx-4"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
             <div className="flex gap-2">
               <Input
                 type="url"
@@ -254,9 +396,14 @@ export default function Home() {
                 )}
               </Button>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center gap-2">
+          <motion.div
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             {urls.length > 0 && (
               <>
                 <Button
@@ -267,54 +414,82 @@ export default function Home() {
                 >
                   {selectedUrls.size === limitedUrls.length ? 'Deselect All' : 'Select All'}
                 </Button>
-                <Button
-                  onClick={handleFetchMetaTags}
-                  disabled={selectedUrls.size === 0 || isFetchingMeta}
-                >
-                  {isFetchingMeta ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Search className="h-4 w-4 mr-2" />
-                  )}
-                  Fetch ({selectedUrls.size})
-                </Button>
+                {(isFetchingMeta || metaResults.length > 0) && (
+                  <motion.div
+                    layoutId="fetch-button"
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  >
+                    <Button
+                      onClick={handleFetchMetaTags}
+                      disabled={selectedUrls.size === 0 || isFetchingMeta}
+                    >
+                      {isFetchingMeta ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Search className="h-4 w-4 mr-2" />
+                      )}
+                      Analyze {selectedUrls.size} pages
+                    </Button>
+                  </motion.div>
+                )}
               </>
             )}
-          </div>
+          </motion.div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive" className="mx-4 mt-4 max-w-none">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <Alert variant="destructive" className="mx-4 mt-4 max-w-none">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        {urls.length > 0 && sidebarOpen && (
-          <div className="w-72 flex-shrink-0">
-            <PathTreeSidebar
-              urls={urls}
-              selectedUrls={selectedUrls}
-              expandedPaths={expandedPaths}
-              onToggleExpand={handleToggleExpand}
-              onToggleSelect={handleToggleSelect}
-              onSelectPath={handleSelectPath}
-              selectedPath={selectedPath}
-              maxPathsPerParent={maxPathsPerParent}
-            />
-          </div>
-        )}
+        <AnimatePresence>
+          {urls.length > 0 && sidebarOpen && (
+            <motion.div
+              className="w-72 flex-shrink-0"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PathTreeSidebar
+                urls={urls}
+                selectedUrls={selectedUrls}
+                expandedPaths={expandedPaths}
+                onToggleExpand={handleToggleExpand}
+                onToggleSelect={handleToggleSelect}
+                onSelectPath={handleSelectPath}
+                selectedPath={selectedPath}
+                maxPathsPerParent={maxPathsPerParent}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Toggle sidebar button */}
           {urls.length > 0 && (
-            <div className="border-b bg-white dark:bg-gray-950 px-4 py-2 flex items-center justify-between">
+            <motion.div
+              className="border-b bg-white dark:bg-gray-950 px-4 py-2 flex items-center justify-between"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -330,7 +505,7 @@ export default function Home() {
 
                 {selectedPath && (
                   <span className="text-sm text-muted-foreground">
-                    Viewing: <code className="font-mono">{selectedPath}</code>
+                    Showing pages in: <code className="font-mono">{selectedPath}</code>
                   </span>
                 )}
               </div>
@@ -338,7 +513,7 @@ export default function Home() {
               {/* Master Tab Selector */}
               {metaResults.length > 0 && (
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">View all as:</span>
+                  <span className="text-sm text-muted-foreground">Display:</span>
                   <Tabs
                     value={masterTab}
                     onValueChange={(v) => setMasterTab(v as MetaTabType)}
@@ -346,7 +521,7 @@ export default function Home() {
                     <TabsList>
                       <TabsTrigger value="basic" className="flex items-center gap-1">
                         <FileText className="h-3 w-3" />
-                        Basic
+                        Details
                       </TabsTrigger>
                       <TabsTrigger value="og" className="flex items-center gap-1">
                         <Globe className="h-3 w-3" />
@@ -374,109 +549,171 @@ export default function Home() {
                     <DropdownMenuContent>
                       <DropdownMenuItem onClick={() => exportToJSON(metaResults)}>
                         <FileJson className="h-4 w-4 mr-2" />
-                        Export as JSON
+                        Download as JSON
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => exportToCSV(metaResults)}>
                         <FileSpreadsheet className="h-4 w-4 mr-2" />
-                        Export as CSV
+                        Download as Excel
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
           {/* Progress */}
-          {isFetchingMeta && (
-            <div className="px-4 py-2 border-b bg-white dark:bg-gray-950">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium">Fetching meta tags...</span>
-                <span className="text-sm text-muted-foreground">{progress}%</span>
-              </div>
-              <Progress value={progress} />
-            </div>
-          )}
+          <AnimatePresence>
+            {isFetchingMeta && (
+              <motion.div
+                className="px-4 py-2 border-b bg-white dark:bg-gray-950"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Checking pages...</span>
+                  <span className="text-sm text-muted-foreground">{progress}%</span>
+                </div>
+                <Progress value={progress} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Results */}
           <ScrollArea className="flex-1 h-full min-h-0">
             <div className="p-4 space-y-4">
               {/* Stats */}
-              {metaResults.length > 0 && (
-                <Card>
-                  <CardContent className="py-4">
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        <span className="text-sm">
-                          <strong>{successCount}</strong> successful
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <XCircle className="h-5 w-5 text-red-500" />
-                        <span className="text-sm">
-                          <strong>{errorCount}</strong> failed
-                        </span>
-                      </div>
-                      {selectedPath && (
-                        <div className="text-sm text-muted-foreground">
-                          Showing {filteredResults.length} of {metaResults.length} results
+              <AnimatePresence>
+                {metaResults.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <Card>
+                      <CardContent className="py-4">
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            <span className="text-sm">
+                              <strong>{successCount}</strong> pages found
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <XCircle className="h-5 w-5 text-red-500" />
+                            <span className="text-sm">
+                              <strong>{errorCount}</strong> couldn't load
+                            </span>
+                          </div>
+                          {selectedPath && (
+                            <div className="text-sm text-muted-foreground">
+                              {filteredResults.length} of {metaResults.length} pages shown
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Meta Tag Cards */}
               {filteredResults.map((result, index) => (
-                <MetaTagCard key={index} data={result} activeTab={masterTab} />
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                >
+                  <MetaTagCard data={result} activeTab={masterTab} />
+                </motion.div>
               ))}
 
-              {/* Empty State */}
-              {!isLoadingSitemap && urls.length === 0 && metaResults.length === 0 && (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <Globe className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="text-lg font-medium mb-2">No data yet</h3>
-                    <p className="text-muted-foreground">
-                      Enter a sitemap URL above to get started
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Loading State */}
+              {isLoadingSitemap && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <Loader2 className="h-12 w-12 mx-auto mb-4 text-primary animate-spin" />
+                      <h3 className="text-lg font-medium mb-2">Loading your sitemap...</h3>
+                      <p className="text-muted-foreground">
+                        Please wait while we find all your pages
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
 
               {/* Waiting for fetch */}
-              {urls.length > 0 && metaResults.length === 0 && !isFetchingMeta && (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="text-lg font-medium mb-2">
-                      {selectedUrls.size} URLs selected
-                    </h3>
-                    <p className="text-muted-foreground mb-2 flex items-center justify-center gap-1 flex-wrap">
-                      <span>{stats.totalOriginalUrls} total → {stats.totalLimitedUrls} (max</span>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="1000"
-                        value={maxPathsPerParent}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10);
-                          if (!isNaN(value) && value > 0 && value <= 1000) {
-                            setMaxPathsPerParent(value);
-                          }
-                        }}
-                        className="w-16 h-7 text-center text-sm inline-block"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <span>per path)</span>
-                    </p>
-                    <p className="text-muted-foreground">
-                      Click &quot;Fetch&quot; to analyze meta tags
-                    </p>
-                  </CardContent>
-                </Card>
+              {urls.length > 0 && metaResults.length === 0 && !isFetchingMeta && !isLoadingSitemap && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                      <h3 className="text-lg font-medium mb-2">
+                        Ready to check {selectedUrls.size} pages
+                      </h3>
+                      <p className="text-muted-foreground mb-2 flex items-center justify-center gap-1 flex-wrap">
+                        <span>Found {stats.totalOriginalUrls} pages total. Showing {stats.totalLimitedUrls} (limit:</span>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="1000"
+                          value={maxPathsPerParent}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            if (!isNaN(value) && value > 0 && value <= 1000) {
+                              setMaxPathsPerParent(value);
+                            }
+                          }}
+                          className="w-16 h-7 text-center text-sm inline-block"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <span>per section)</span>
+                      </p>
+                      <motion.div
+                        layoutId="fetch-button"
+                        className="flex justify-center mt-6"
+                      >
+                        <Button
+                          onClick={handleFetchMetaTags}
+                          disabled={selectedUrls.size === 0 || isFetchingMeta}
+                          size="lg"
+                          className="px-8"
+                        >
+                          <Search className="h-5 w-5 mr-2" />
+                          Analyze {selectedUrls.size} pages
+                        </Button>
+                      </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Empty state after error */}
+              {!isLoadingSitemap && urls.length === 0 && error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive/50" />
+                      <h3 className="text-lg font-medium mb-2">Couldn't load your sitemap</h3>
+                      <p className="text-muted-foreground">
+                        Make sure the URL is correct and try again
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
             </div>
           </ScrollArea>

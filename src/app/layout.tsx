@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,8 +13,82 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Meta Tags Utility - Bulk Meta Tag Analyzer",
-  description: "Analyze meta tags from multiple URLs using a sitemap. Preview Open Graph and Twitter Card tags, and export results to CSV or JSON.",
+  title: {
+    default: "Meta Tags Utility - Check How Your Pages Appear When Shared",
+    template: "%s | Meta Tags Utility",
+  },
+  description: "Check how your website pages appear when shared on social media. Analyze meta tags from your sitemap, preview Open Graph and Twitter Card tags, and export results to Excel or JSON.",
+  keywords: [
+    "meta tags",
+    "Open Graph",
+    "Twitter Cards",
+    "social media preview",
+    "SEO",
+    "sitemap analyzer",
+    "meta tag checker",
+    "social sharing preview",
+    "og tags",
+    "meta tags analyzer",
+  ],
+  authors: [{ name: "Meta Tags Utility" }],
+  creator: "Meta Tags Utility",
+  publisher: "Meta Tags Utility",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://meta-tags-utility.vercel.app")
+  ),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    title: "Meta Tags Utility - Check How Your Pages Appear When Shared",
+    description: "Check how your website pages appear when shared on social media. Analyze meta tags from your sitemap, preview Open Graph and Twitter Card tags, and export results to Excel or JSON.",
+    siteName: "Meta Tags Utility",
+    images: [
+      {
+        url: "/meta-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Meta Tags Utility - Check how your pages appear when shared",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Meta Tags Utility - Check How Your Pages Appear When Shared",
+    description: "Check how your website pages appear when shared on social media. Analyze meta tags from your sitemap, preview Open Graph and Twitter Card tags, and export results to Excel or JSON.",
+    images: ["/meta-image.png"],
+    creator: "@metatagsutility",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({
