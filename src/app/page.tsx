@@ -105,8 +105,57 @@ export default function Home() {
     });
   }, [metaResults, selectedPath]);
 
+  // Normalize URL - add /sitemap.xml if it's just a base domain
+  const normalizeSitemapUrl = (url: string): string => {
+    const trimmed = url.trim();
+    if (!trimmed) return trimmed;
+
+    try {
+      // Add protocol if missing
+      let urlWithProtocol = trimmed;
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        urlWithProtocol = `https://${trimmed}`;
+      }
+
+      const parsed = new URL(urlWithProtocol);
+      
+      // Check if it's just a base domain (no path or just "/")
+      const pathname = parsed.pathname;
+      if (pathname === '' || pathname === '/') {
+        // It's a base URL, append /sitemap.xml
+        parsed.pathname = '/sitemap.xml';
+        return parsed.toString();
+      }
+
+      // Already has a path, return as-is
+      return parsed.toString();
+    } catch {
+      // If URL parsing fails (e.g., invalid format), try simple string manipulation
+      // Handle cases like "aiverse.design" or "aiverse.design/"
+      const cleaned = trimmed.replace(/\/+$/, ''); // Remove trailing slashes
+      
+      // Check if it looks like a base domain (no path after domain)
+      // Pattern: domain with optional protocol, no path segments
+      const domainPattern = /^(https?:\/\/)?([^\/]+)\/?$/;
+      const match = cleaned.match(domainPattern);
+      
+      if (match) {
+        // It's a base domain, add /sitemap.xml
+        const protocol = match[1] || 'https://';
+        const domain = match[2];
+        return `${protocol}${domain}/sitemap.xml`;
+      }
+      
+      // Doesn't match base domain pattern, return as-is
+      return trimmed;
+    }
+  };
+
   const handleParseSitemap = async () => {
     if (!sitemapUrl.trim()) return;
+
+    // Normalize the URL
+    const normalizedUrl = normalizeSitemapUrl(sitemapUrl);
 
     // Trigger the animation
     setHasSearched(true);
@@ -122,7 +171,7 @@ export default function Home() {
       const response = await fetch('/api/parse-sitemap', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: sitemapUrl }),
+        body: JSON.stringify({ url: normalizedUrl }),
       });
 
       const data = await response.json();
