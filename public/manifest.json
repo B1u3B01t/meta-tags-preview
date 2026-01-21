@@ -1,0 +1,27 @@
+{
+  "name": "Meta Tags Preview - Check How Your Pages Appear When Shared",
+  "short_name": "Meta Tags Preview",
+  "description": "Check how your website pages appear when shared on social media. Analyze meta tags from your sitemap, preview Open Graph and Twitter Card tags, and export results to Excel or JSON.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#09090b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["developer", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr"
+}

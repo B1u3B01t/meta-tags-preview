@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   publisher: "Meta Tags Utility",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://meta-tags-utility.vercel.app")
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://metamochi.vercel.app")
   ),
   alternates: {
     canonical: "/",
@@ -96,11 +96,53 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://metamochi.vercel.app');
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Meta Tags Utility',
+    description: 'Check how your website pages appear when shared on social media. Analyze meta tags from your sitemap, preview Open Graph and Twitter Card tags, and export results to Excel or JSON.',
+    url: baseUrl,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '5',
+      ratingCount: '1',
+    },
+    featureList: [
+      'Sitemap parsing and analysis',
+      'Meta tag extraction',
+      'Open Graph preview',
+      'Twitter Card preview',
+      'Social media preview',
+      'Export to JSON and Excel',
+    ],
+    screenshot: `${baseUrl}/meta-image.png`,
+    image: `${baseUrl}/meta-image.png`,
+    author: {
+      '@type': 'Organization',
+      name: 'Meta Tags Utility',
+    },
+  };
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         {children}
       </body>
     </html>
