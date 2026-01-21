@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     siteName: "Meta Tags Utility",
     images: [
       {
-        url: "/meta-image.png",
+        url: "https://aiverse-next.b-cdn.net/meta-mochi/meta-mochi-meta-card.png",
         width: 1200,
         height: 630,
         alt: "Meta Tags Utility - Check how your pages appear when shared",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Meta Tags Utility - Check How Your Pages Appear When Shared",
     description: "Check how your website pages appear when shared on social media. Analyze meta tags from your sitemap, preview Open Graph and Twitter Card tags, and export results to Excel or JSON.",
-    images: ["/meta-image.png"],
+    images: ["https://aiverse-next.b-cdn.net/meta-mochi/meta-mochi-meta-card.png"],
     creator: "@metatagsutility",
   },
   robots: {
@@ -126,8 +126,8 @@ export default function RootLayout({
       'Social media preview',
       'Export to JSON and Excel',
     ],
-    screenshot: `${baseUrl}/meta-image.png`,
-    image: `${baseUrl}/meta-image.png`,
+    screenshot: "https://aiverse-next.b-cdn.net/meta-mochi/meta-mochi-meta-card.png",
+    image: "https://aiverse-next.b-cdn.net/meta-mochi/meta-mochi-meta-card.png",
     author: {
       '@type': 'Organization',
       name: 'Meta Tags Utility',
